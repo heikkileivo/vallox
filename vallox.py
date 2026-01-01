@@ -38,7 +38,7 @@ class Vallox:
         """
         self.port = port
         self.baudrate = baudrate
-        self.debug = debug
+        self._debug = debug
         self.serial: Optional[serial.Serial] = None
         
         # Initialize data structures
@@ -125,7 +125,7 @@ class Vallox:
             self.request_config()
             return True
         except Exception as e:
-            if self.debug:
+            if self._debug:
                 print(f"Failed to connect: {e}")
             return False
     
@@ -175,146 +175,213 @@ class Vallox:
         if now - self.last_retry_loop > RETRY_INTERVAL:
             self._retry_loop()
     
-    # Getters
-    def get_updated(self) -> float:
+    # Properties (read-only)
+    @property
+    def updated(self) -> float:
         """Get timestamp of last update"""
         return self.data['updated']
     
-    def get_inside_temp(self) -> int:
+    @property
+    def inside_temp(self) -> int:
         """Get inside temperature in Celsius"""
         return self.data['t_inside'].value if self.data['t_inside'].value is not None else NOT_SET
     
-    def get_outside_temp(self) -> int:
+    @property
+    def outside_temp(self) -> int:
         """Get outside temperature in Celsius"""
         return self.data['t_outside'].value if self.data['t_outside'].value is not None else NOT_SET
     
-    def get_incoming_temp(self) -> int:
+    @property
+    def incoming_temp(self) -> int:
         """Get incoming air temperature in Celsius"""
         return self.data['t_incoming'].value if self.data['t_incoming'].value is not None else NOT_SET
     
-    def get_exhaust_temp(self) -> int:
+    @property
+    def exhaust_temp(self) -> int:
         """Get exhaust air temperature in Celsius"""
         return self.data['t_exhaust'].value if self.data['t_exhaust'].value is not None else NOT_SET
     
-    def is_on(self) -> bool:
+    @property
+    def on(self) -> bool:
         """Check if unit is powered on"""
         return self.data['is_on'].value or False
     
-    def is_rh_mode(self) -> bool:
+    @property
+    def rh_mode(self) -> bool:
         """Check if RH (humidity) mode is active"""
         return self.data['is_rh_mode'].value or False
     
-    def is_heating_mode(self) -> bool:
+    @property
+    def heating_mode(self) -> bool:
         """Check if heating mode is active"""
         return self.data['is_heating_mode'].value or False
     
-    def is_summer_mode(self) -> bool:
+    @property
+    def summer_mode(self) -> bool:
         """Check if summer mode is active"""
         return self.data['is_summer_mode'].value or False
     
-    def is_error_relay(self) -> bool:
+    @property
+    def error_relay(self) -> bool:
         """Check if error relay is active"""
         return self.data['is_error'].value or False
     
-    def is_motor_in(self) -> bool:
+    @property
+    def motor_in(self) -> bool:
         """Check if intake motor is running"""
         return self.data['is_in_motor'].value or False
     
-    def is_front_heating(self) -> bool:
+    @property
+    def front_heating(self) -> bool:
         """Check if front heating is active"""
         return self.data['is_front_heating'].value or False
     
-    def is_motor_out(self) -> bool:
+    @property
+    def motor_out(self) -> bool:
         """Check if exhaust motor is running"""
         return self.data['is_out_motor'].value or False
     
-    def is_extra_func(self) -> bool:
+    @property
+    def extra_func(self) -> bool:
         """Check if extra function is active"""
         return self.data['is_extra_func'].value or False
     
-    def is_filter(self) -> bool:
+    @property
+    def filter(self) -> bool:
         """Check if filter warning is active"""
         return self.data['is_filter'].value or False
     
-    def is_heating(self) -> bool:
+    @property
+    def heating(self) -> bool:
         """Check if heating is active"""
         return self.data['is_heating'].value or False
     
-    def is_fault(self) -> bool:
+    @property
+    def fault(self) -> bool:
         """Check if fault is present"""
         return self.data['is_fault'].value or False
     
-    def is_service_needed(self) -> bool:
+    @property
+    def service_needed(self) -> bool:
         """Check if service is needed"""
         return self.data['is_service'].value or False
     
-    def is_switch_active(self) -> bool:
+    @property
+    def switch_active(self) -> bool:
         """Check if boost/fireplace switch is active"""
         return self.data['is_switch_active'].value or False
     
-    def get_fan_speed(self) -> int:
-        """Get current fan speed (1-8)"""
-        return self.data['fan_speed'].value if self.data['fan_speed'].value is not None else NOT_SET
-    
-    def get_default_fan_speed(self) -> int:
-        """Get default fan speed (1-8)"""
-        return self.data['default_fan_speed'].value if self.data['default_fan_speed'].value is not None else NOT_SET
-    
-    def get_rh1(self) -> int:
+    @property
+    def rh1(self) -> int:
         """Get RH sensor 1 value (%)"""
         if not self.data['rh1'].last_received:
             return NOT_SET
         return self.data['rh1'].value if self.data['rh1'].value is not None else NOT_SET
     
-    def get_rh2(self) -> int:
+    @property
+    def rh2(self) -> int:
         """Get RH sensor 2 value (%)"""
         if not self.data['rh2'].last_received:
             return NOT_SET
         return self.data['rh2'].value if self.data['rh2'].value is not None else NOT_SET
     
-    def get_co2(self) -> int:
+    @property
+    def co2(self) -> int:
         """Get CO2 sensor value (ppm)"""
         if not self.data['co2'].last_received:
             return NOT_SET
         return self.data['co2'].value if self.data['co2'].value is not None else NOT_SET
     
-    def get_service_period(self) -> int:
-        """Get service period in months"""
-        return self.data['service_period'].value if self.data['service_period'].value is not None else NOT_SET
-    
-    def get_service_counter(self) -> int:
-        """Get service counter in months"""
-        return self.data['service_counter'].value if self.data['service_counter'].value is not None else NOT_SET
-    
-    def get_heating_target(self) -> int:
-        """Get heating target temperature in Celsius"""
-        return self.data['heating_target'].value if self.data['heating_target'].value is not None else NOT_SET
-    
-    def get_switch_type(self) -> int:
+    @property
+    def switch_type(self) -> int:
         """Get switch type (0=fireplace, 1=boost, NOT_SET=unknown)"""
         if not self.settings['is_boost_setting'].last_received:
             return NOT_SET
         return 1 if self.settings['is_boost_setting'].value else 0
     
-    def is_init_ok(self) -> bool:
+    @property
+    def init_ok(self) -> bool:
         """Check if initialization is complete"""
         return self.full_init_done
     
-    # Setters
-    def set_fan_speed(self, speed: int):
+    # Properties (read-write)
+    @property
+    def fan_speed(self) -> int:
+        """Get current fan speed (1-8)"""
+        return self.data['fan_speed'].value if self.data['fan_speed'].value is not None else NOT_SET
+    
+    @fan_speed.setter
+    def fan_speed(self, speed: int):
         """Set fan speed (1-8)"""
         if speed <= VX_MAX_FAN_SPEED:
             self._set_variable(VX_VARIABLE_FAN_SPEED, self._fan_speed_to_hex(speed))
             self.data['fan_speed'].value = speed
             self._call_status_changed()
     
-    def set_default_fan_speed(self, speed: int):
+    @property
+    def default_fan_speed(self) -> int:
+        """Get default fan speed (1-8)"""
+        return self.data['default_fan_speed'].value if self.data['default_fan_speed'].value is not None else NOT_SET
+    
+    @default_fan_speed.setter
+    def default_fan_speed(self, speed: int):
         """Set default fan speed (1-8)"""
         if speed <= VX_MAX_FAN_SPEED:
             self._set_variable(VX_VARIABLE_DEFAULT_FAN_SPEED, self._fan_speed_to_hex(speed))
             self.data['default_fan_speed'].value = speed
             self._call_status_changed()
     
+    @property
+    def service_period(self) -> int:
+        """Get service period in months"""
+        return self.data['service_period'].value if self.data['service_period'].value is not None else NOT_SET
+    
+    @service_period.setter
+    def service_period(self, months: int):
+        """Set service period in months"""
+        if 0 <= months < 256:
+            self._set_variable(VX_VARIABLE_SERVICE_PERIOD, months)
+            self.data['service_period'].value = months
+            self._call_status_changed()
+    
+    @property
+    def service_counter(self) -> int:
+        """Get service counter in months"""
+        return self.data['service_counter'].value if self.data['service_counter'].value is not None else NOT_SET
+    
+    @service_counter.setter
+    def service_counter(self, months: int):
+        """Set service counter in months"""
+        if 0 <= months < 256:
+            self._set_variable(VX_VARIABLE_SERVICE_COUNTER, months)
+            self.data['service_counter'].value = months
+            self._call_status_changed()
+    
+    @property
+    def heating_target(self) -> int:
+        """Get heating target temperature in Celsius"""
+        return self.data['heating_target'].value if self.data['heating_target'].value is not None else NOT_SET
+    
+    @heating_target.setter
+    def heating_target(self, celsius: int):
+        """Set heating target temperature (10-27°C)"""
+        if 10 <= celsius <= 27:
+            hex_val = self._cel_to_ntc(celsius)
+            self._set_variable(VX_VARIABLE_HEATING_TARGET, hex_val)
+            self.data['heating_target'].value = celsius
+            self._call_status_changed()
+    
+    @property
+    def debug(self) -> bool:
+        """Get debug mode status"""
+        return self._debug
+    
+    @debug.setter
+    def debug(self, value: bool):
+        """Enable or disable debug mode"""
+        self._debug = value
+    
+    # Action methods (previously setters without corresponding getters)
     def set_on(self):
         """Turn the unit on"""
         if self._set_status_variable(VX_VARIABLE_STATUS, 
@@ -363,36 +430,10 @@ class Vallox:
             self.data['is_heating_mode'].value = False
             self._call_status_changed()
     
-    def set_service_period(self, months: int):
-        """Set service period in months"""
-        if 0 <= months < 256:
-            self._set_variable(VX_VARIABLE_SERVICE_PERIOD, months)
-            self.data['service_period'].value = months
-            self._call_status_changed()
-    
-    def set_service_counter(self, months: int):
-        """Set service counter in months"""
-        if 0 <= months < 256:
-            self._set_variable(VX_VARIABLE_SERVICE_COUNTER, months)
-            self.data['service_counter'].value = months
-            self._call_status_changed()
-    
-    def set_heating_target(self, celsius: int):
-        """Set heating target temperature (10-27°C)"""
-        if 10 <= celsius <= 27:
-            hex_val = self._cel_to_ntc(celsius)
-            self._set_variable(VX_VARIABLE_HEATING_TARGET, hex_val)
-            self.data['heating_target'].value = celsius
-            self._call_status_changed()
-    
     def set_switch_on(self):
         """Activate boost/fireplace switch"""
         self._set_variable(VX_VARIABLE_FLAGS_06, 
                           self.data['flags06'].value | VX_06_FIREPLACE_FLAG_ACTIVATE)
-    
-    def set_debug(self, debug: bool):
-        """Enable or disable debug mode"""
-        self.debug = debug
     
     # Callback setters
     def set_packet_callback(self, callback: Callable):
@@ -455,7 +496,7 @@ class Vallox:
         
         message = first_byte + sender + receiver + rest
         
-        if self.debug and self.packet_callback:
+        if self._debug and self.packet_callback:
             self.packet_callback(message, "packetRecv")
         
         return message
@@ -639,7 +680,7 @@ class Vallox:
         
         self.serial.write(message)
         
-        if self.debug and self.packet_callback:
+        if self._debug and self.packet_callback:
             self.packet_callback(bytes(message), "packetSent")
         
         # Also send to panels
@@ -673,7 +714,7 @@ class Vallox:
         ])
         message[5] = self._calculate_checksum(message)
         
-        if self.debug and self.packet_callback:
+        if self._debug and self.packet_callback:
             self.packet_callback(bytes(message), "packetSent")
         
         self.serial.write(message)
@@ -846,7 +887,7 @@ class Vallox:
     
     def _debug_print(self, message: str):
         """Print debug message"""
-        if self.debug:
+        if self._debug:
             if self.debug_print_callback:
                 self.debug_print_callback(message)
             else:

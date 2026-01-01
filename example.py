@@ -10,37 +10,29 @@ import time
 from vallox import Vallox
 
 
-def packet_debug(packet, direction):
-    """Callback for packet debug"""
-    hex_str = ' '.join(f'{b:02x}' for b in packet)
-    print(f"[{direction}] {hex_str}")
-
-
 def main():
-    """Main function"""
-    global vx
-    
+    """Main function"""    
     # Configuration
-    SERIAL_PORT = "/dev/ttyUSB0"  # Change this to your serial port
-    DEBUG = True  # Set to False to disable debug output
+    serial_port = "/dev/ttyUSB0"  # Change this to your serial port
+    debug = True  # Set to False to disable debug output
     
     print("Vallox Serial Communication Example")
     print("=" * 50)
     
     # Create Vallox instance
-    vx = Vallox(port=SERIAL_PORT, baudrate=9600, debug=DEBUG)
+    vx = Vallox(port=serial_port, baudrate=9600, debug=debug)
     
     def status_changed():
         """Callback when status changes"""
         print("\n=== Status Changed ===")
-        print(f"Power: {'ON' if vx.is_on() else 'OFF'}")
-        print(f"Heating Mode: {'ON' if vx.is_heating_mode() else 'OFF'}")
-        print(f"Fan Speed: {vx.get_fan_speed()}")
-        print(f"Default Fan Speed: {vx.get_default_fan_speed()}")
-        print(f"Heating Target: {vx.get_heating_target()}°C")
-        print(f"Service Counter: {vx.get_service_counter()} months")
-        print(f"Filter Warning: {'YES' if vx.is_filter() else 'NO'}")
-        print(f"Fault: {'YES' if vx.is_fault() else 'NO'}")
+        print(f"Power: {'ON' if vx.on else 'OFF'}")
+        print(f"Heating Mode: {'ON' if vx.heating_mode else 'OFF'}")
+        print(f"Fan Speed: {vx.fan_speed}")
+        print(f"Default Fan Speed: {vx.default_fan_speed}")
+        print(f"Heating Target: {vx.heating_target}°C")
+        print(f"Service Counter: {vx.service_counter} months")
+        print(f"Filter Warning: {'YES' if vx.filter else 'NO'}")
+        print(f"Fault: {'YES' if vx.fault else 'NO'}")
 
     def debug_print(message):
         """Callback for debug messages"""
@@ -49,14 +41,14 @@ def main():
     def temperature_changed():
         """Callback when temperature values change"""
         print("\n=== Temperature Update ===")
-        print(f"Inside: {vx.get_inside_temp()}°C")
-        print(f"Outside: {vx.get_outside_temp()}°C")
-        print(f"Incoming: {vx.get_incoming_temp()}°C")
-        print(f"Exhaust: {vx.get_exhaust_temp()}°C")
+        print(f"Inside: {vx.inside_temp}°C")
+        print(f"Outside: {vx.outside_temp}°C")
+        print(f"Incoming: {vx.incoming_temp}°C")
+        print(f"Exhaust: {vx.exhaust_temp}°C")
         
-        rh1 = vx.get_rh1()
-        rh2 = vx.get_rh2()
-        co2 = vx.get_co2()
+        rh1 = vx.rh1
+        rh2 = vx.rh2
+        co2 = vx.co2
     
         if rh1 != -999:
             print(f"RH1: {rh1}%")
@@ -70,11 +62,16 @@ def main():
     vx.set_temperature_changed_callback(temperature_changed)
     vx.set_debug_print_callback(debug_print)
     
-    if DEBUG:
+
+    if debug:
+        def packet_debug(packet, direction):
+            """Callback for packet debug"""
+            hex_str = ' '.join(f'{b:02x}' for b in packet)
+            print(f"[{direction}] {hex_str}")
         vx.set_packet_callback(packet_debug)
     
     # Connect to the unit
-    print(f"\nConnecting to {SERIAL_PORT}...")
+    print(f"\nConnecting to {serial_port}...")
     if not vx.connect():
         print("Failed to connect!")
         return
@@ -88,7 +85,7 @@ def main():
             vx.loop()
             
             # Check if initialization is complete
-            if vx.is_init_ok() and not hasattr(main, 'init_printed'):
+            if vx.init_ok and not hasattr(main, 'init_printed'):
                 print("\n=== Initialization Complete ===")
                 main.init_printed = True
             
@@ -109,17 +106,29 @@ def example_control():
     Note: This is not called by default. You can call these methods
     from the main loop or create a separate control interface.
     """
+
+    serial_port = "/dev/ttyUSB0"  # Change this to your serial port
+    debug = True  # Set to False to disable debug output
+    
+    print("Vallox Serial Communication Example")
+    print("=" * 50)
+    
+    # Create Vallox instance
+    vx = Vallox(port=serial_port, baudrate=9600, debug=debug)
+
+    vx.connect()
+
     # Turn on the unit
     vx.set_on()
     
     # Set fan speed to level 3
-    vx.set_fan_speed(3)
+    vx.fan_speed = 3
     
     # Enable heating mode
     vx.set_heating_mode_on()
     
     # Set heating target to 22°C
-    vx.set_heating_target(22)
+    vx.heating_target = 22
     
     # Activate boost/fireplace switch
     vx.set_switch_on()
