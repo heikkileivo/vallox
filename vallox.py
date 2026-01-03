@@ -25,6 +25,9 @@ class Vallox:
     
     This class handles serial communication with Vallox air conditioning units,
     providing methods to read status, temperatures, and control the device.
+
+    See the original implementation by Toni Korhonen (@kotope) for reference:
+    https://github.com/kotope/valloxesp/tree/master
     """
     
     def __init__(self, port: str = "/dev/ttyUSB0", baudrate: int = 9600, debug: bool = False):
@@ -147,8 +150,8 @@ class Vallox:
         self._send_flags06_req()
         self._send_program_req()
         
-        self.data['updated'] = time.time()
-        self.last_requested = time.time()
+        self.data['updated'] = time.monotonic()
+        self.last_requested = time.monotonic()
     
     def loop(self):
         """
@@ -164,7 +167,7 @@ class Vallox:
             self._decode_message(message)
         
         # Periodic queries
-        now = time.time()
+        now = time.monotonic()
         if now - self.last_requested > QUERY_INTERVAL:
             self.last_requested = now
             if self._is_status_init_done():
@@ -316,7 +319,7 @@ class Vallox:
         if speed <= VX_MAX_FAN_SPEED:
             self._set_variable(VX_VARIABLE_FAN_SPEED, self._fan_speed_to_hex(speed))
             self.data['fan_speed'].value = speed
-            self._call_status_changed()
+            self._call_status_changed('fan_speed')
     
     @property
     def default_fan_speed(self) -> int:
@@ -329,7 +332,7 @@ class Vallox:
         if speed <= VX_MAX_FAN_SPEED:
             self._set_variable(VX_VARIABLE_DEFAULT_FAN_SPEED, self._fan_speed_to_hex(speed))
             self.data['default_fan_speed'].value = speed
-            self._call_status_changed()
+            self._call_status_changed('default_fan_speed')
     
     @property
     def service_period(self) -> int:
@@ -342,7 +345,7 @@ class Vallox:
         if 0 <= months < 256:
             self._set_variable(VX_VARIABLE_SERVICE_PERIOD, months)
             self.data['service_period'].value = months
-            self._call_status_changed()
+            self._call_status_changed('service_period')
     
     @property
     def service_counter(self) -> int:
@@ -355,7 +358,7 @@ class Vallox:
         if 0 <= months < 256:
             self._set_variable(VX_VARIABLE_SERVICE_COUNTER, months)
             self.data['service_counter'].value = months
-            self._call_status_changed()
+            self._call_status_changed('service_counter')
     
     @property
     def heating_target(self) -> int:
@@ -369,7 +372,7 @@ class Vallox:
             hex_val = self._cel_to_ntc(celsius)
             self._set_variable(VX_VARIABLE_HEATING_TARGET, hex_val)
             self.data['heating_target'].value = celsius
-            self._call_status_changed()
+            self._call_status_changed('heating_target')
     
     @property
     def debug(self) -> bool:
@@ -387,48 +390,48 @@ class Vallox:
         if self._set_status_variable(VX_VARIABLE_STATUS, 
                                      self.data['status'].value | VX_STATUS_FLAG_POWER):
             self.data['is_on'].value = True
-            self._call_status_changed()
+            self._call_status_changed('is_on')
     
     def set_off(self):
         """Turn the unit off"""
         if self._set_status_variable(VX_VARIABLE_STATUS, 
                                      self.data['status'].value & ~VX_STATUS_FLAG_POWER):
             self.data['is_on'].value = False
-            self._call_status_changed()
+            self._call_status_changed('is_on')
     
     def set_rh_mode_on(self):
         """Enable RH (humidity) mode"""
         if self._set_status_variable(VX_VARIABLE_STATUS, 
                                      self.data['status'].value | VX_STATUS_FLAG_RH):
             self.data['is_rh_mode'].value = True
-            self._call_status_changed()
+            self._call_status_changed('is_rh_mode')
     
     def set_rh_mode_off(self):
         """Disable RH (humidity) mode"""
         if self._set_status_variable(VX_VARIABLE_STATUS, 
                                      self.data['status'].value & ~VX_STATUS_FLAG_RH):
             self.data['is_rh_mode'].value = False
-            self._call_status_changed()
+            self._call_status_changed('is_rh_mode')
     
     def set_heating_mode_on(self):
         """Enable heating mode"""
         if self.data['status'].value & VX_STATUS_FLAG_HEATING_MODE:
             self._debug_print("Heating mode is already on!")
-            self._call_status_changed()
+            self._call_status_changed('is_heating_mode')
         elif self._set_status_variable(VX_VARIABLE_STATUS, 
                                        self.data['status'].value | VX_STATUS_FLAG_HEATING_MODE):
             self.data['is_heating_mode'].value = True
-            self._call_status_changed()
+            self._call_status_changed('is_heating_mode')
     
     def set_heating_mode_off(self):
         """Disable heating mode"""
         if not (self.data['status'].value & VX_STATUS_FLAG_HEATING_MODE):
             self._debug_print("Heating mode is already off!")
-            self._call_status_changed()
+            self._call_status_changed('is_heating_mode')
         elif self._set_status_variable(VX_VARIABLE_STATUS, 
                                        self.data['status'].value & ~VX_STATUS_FLAG_HEATING_MODE):
             self.data['is_heating_mode'].value = False
-            self._call_status_changed()
+            self._call_status_changed('is_heating_mode')
     
     def set_switch_on(self):
         """Activate boost/fireplace switch"""
@@ -508,7 +511,7 @@ class Vallox:
         
         variable = message[3]
         value = message[4]
-        now = time.time()
+        now = time.monotonic()
         
         # Temperature variables
         if variable == VX_VARIABLE_T_OUTSIDE:
@@ -572,11 +575,12 @@ class Vallox:
         if not self.full_init_done:
             self.full_init_done = self._is_status_init_done()
             if self.full_init_done:
-                self._call_status_changed()
+                for k, _ in self.data.items():
+                    self._call_status_changed(k)
     
     def _decode_status(self, status: int):
         """Decode status byte"""
-        now = time.time()
+        now = time.monotonic()
         
         self.data['is_on'].last_received = now
         self.data['is_rh_mode'].last_received = now
@@ -608,7 +612,7 @@ class Vallox:
     
     def _decode_variable08(self, variable08: int):
         """Decode variable 08 byte"""
-        now = time.time()
+        now = time.monotonic()
         
         self.data['is_summer_mode'].last_received = now
         self.data['is_error'].last_received = now
@@ -635,7 +639,7 @@ class Vallox:
     
     def _decode_flags06(self, flags06: int):
         """Decode flags 06 byte"""
-        now = time.time()
+        now = time.monotonic()
         
         self.data['is_switch_active'].last_received = now
         self.data['flags06'].value = flags06
@@ -648,7 +652,7 @@ class Vallox:
         """Decode program byte"""
         should_inform = not self.settings['is_boost_setting'].last_received
         
-        now = time.time()
+        now = time.monotonic()
         self.settings['is_boost_setting'].last_received = now
         self.settings['program'].value = program
         self.settings['program'].last_received = now
@@ -658,9 +662,9 @@ class Vallox:
         
         if old_value != new_value:
             self.settings['is_boost_setting'].value = new_value
-            self._call_status_changed()
+            self._call_status_changed('is_boost_setting')
         elif should_inform:
-            self._call_status_changed()
+            self._call_status_changed('is_boost_setting')
     
     def _set_variable(self, variable: int, value: int, target: int = VX_MSG_MAINBOARDS):
         """Send variable set command"""
@@ -695,7 +699,7 @@ class Vallox:
         if not self.status_mutex:
             self.status_mutex = True
             self._set_variable(variable, value, VX_MSG_MAINBOARD_1)
-            self.last_retry_loop = time.time()
+            self.last_retry_loop = time.monotonic()
             return True
         return False
     
@@ -805,28 +809,30 @@ class Vallox:
             return False
         return True
     
-    def _check_status_change(self, data_field: ValueWithTimestamp, new_value: Any):
+    def _check_status_change(self, name: str, new_value: Any):
         """Check and update status field if changed"""
+        data_field = self.data[name]
         if data_field.value != new_value:
             data_field.value = new_value
-            self.data['updated'] = time.time()
+            self.data['updated'] = time.monotonic()
             if self.full_init_done:
-                self._call_status_changed()
+                self._call_status_changed(name)
     
-    def _check_value_change(self, data_field: ValueWithTimestamp, new_value: Any, 
+    def _check_value_change(self, name: str, new_value: Any, 
                            timestamp: float):
         """Check and update value field if changed (for temperatures, CO2, RH)"""
+        data_field: ValueWithTimestamp= self.data[name]
         data_field.last_received = timestamp
         if data_field.value != new_value:
             data_field.value = new_value
-            self.data['updated'] = time.time()
+            self.data['updated'] = time.monotonic()
             if self._is_temperature_init_done():
                 self._call_temperature_changed()
     
     def _handle_co2_total_value(self, hi: int, lo: int):
         """Construct CO2 value from high and low bytes"""
         total = lo + (hi << 8)
-        now = time.time()
+        now = time.monotonic()
         self._check_value_change(self.data['co2'], total, now)
     
     def _is_temperature_init_done(self) -> bool:
@@ -856,7 +862,7 @@ class Vallox:
         """Retry missing requests and clear mutex"""
         self._send_missing_requests()
         self.status_mutex = False
-        self.last_retry_loop = time.time()
+        self.last_retry_loop = time.monotonic()
     
     def _send_missing_requests(self):
         """Send requests for missing data"""
@@ -875,10 +881,10 @@ class Vallox:
         if not self.data['heating_target'].last_received:
             self._send_heating_target_req()
     
-    def _call_status_changed(self):
+    def _call_status_changed(self, name: str):
         """Call status changed callback if set"""
         if self.status_changed_callback:
-            self.status_changed_callback()
+            self.status_changed_callback(name)
     
     def _call_temperature_changed(self):
         """Call temperature changed callback if set"""
