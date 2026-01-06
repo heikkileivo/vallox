@@ -53,11 +53,94 @@ class DeviceProperty(property):
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
         super().__init__(fget, fset, fdel, doc)
 
-    
+    @property
+    def is_read_only(self) -> bool:
+        """Return True if the property is read-only."""
+        return self.fset is None
+
     def meta(self, name: str, device) -> dict:
         """Return metadata for temperature property."""
         return {}
 
+    def _copy_metadata_to(self, other: "DeviceProperty") -> "DeviceProperty":
+        return other
+
+    def _replace(self, fget=None, fset=None, fdel=None, doc=None):
+        new = type(self)(fget, fset, fdel, doc)
+        return self._copy_metadata_to(new)
+
+    def getter(self, fget):
+        return self._replace(fget=fget, fset=self.fset, fdel=self.fdel, doc=self.__doc__)
+
+    def setter(self, fset):
+        return self._replace(fget=self.fget, fset=fset, fdel=self.fdel, doc=self.__doc__)
+
+    def deleter(self, fdel):
+        return self._replace(fget=self.fget, fset=self.fset, fdel=fdel, doc=self.__doc__)
+
+class Number(DeviceProperty):
+    """
+    Represents a numeric property of a Home Assistant device.
+    """
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        super().__init__(fget, fset, fdel, doc)
+        self.type: type = int
+        self.unit: str = ""
+        self.min: Optional[float] = None
+        self.max: Optional[float] = None
+        self.step: Optional[float] = None
+
+    def _copy_metadata_to(self, other: "Number") -> "Number":
+        other.type = self.type
+        other.unit = self.unit
+        other.min = self.min
+        other.max = self.max
+        other.step = self.step
+        return other
+
+    def meta(self, name: str, device) -> dict:
+        """
+        Return metadata for number entity.
+        """
+        meta = {
+            "name": name,
+            "p": "number",
+            "unit_of_measurement": self.unit,
+            "state_topic": f"{device.root_topic}/{device.device_id}/{name.lower()}",
+            "unique_id": f"{device.device_id}_{name.lower()}",
+        }
+        if self.is_read_only is False:
+            meta["command_topic"] = f"{device.root_topic}/{device.device_id}/{name.lower()}/set"
+        print(f"Min in meta: {self.min}")
+        print(f"Max in meta: {self.max}")
+        if self.min is not None:
+            meta["min"] = self.min
+        if self.max is not None:
+            meta["max"] = self.max
+        if self.step is not None:
+            meta["step"] = self.step
+        return meta
+
+def number(type: type = int, 
+           unit: str = "", 
+           min: Optional[float] = None, 
+           max: Optional[float] = None, 
+           step: Optional[float] = None):
+    """
+    Decorator to define a numeric property.
+    """
+    def decorator(func):
+        prop = Number(func)
+        prop.type = type
+        prop.unit = unit
+        prop.min = min
+        prop.max = max
+        prop.step = step
+        
+        print(f"Min set to: {prop.min}")
+        print(f"Max set to: {prop.max}")
+        return prop
+    return decorator
 
 class Temperature(DeviceProperty):
     """
@@ -65,7 +148,13 @@ class Temperature(DeviceProperty):
     """
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
         super().__init__(fget, fset, fdel, doc)
+        self.type: type = float
         self.unit: str = "°C"
+
+    def _copy_metadata_to(self, other):
+        other.type = self.type
+        other.unit = self.unit
+        return other
 
     def meta(self, name: str, device) -> dict:
         """
@@ -76,8 +165,8 @@ class Temperature(DeviceProperty):
             "p": "sensor",
             "unit_of_measurement": self.unit,
             "device_class": "temperature",
-            "value_template": f"{{{{ value_json.{name} }}}}",
-            "unique_id": f"{device.device_id}_{name.lower().replace(' ', '_')}",
+            "state_topic": f"{device.root_topic}/{device.device_id}/{name.lower()}",
+            "unique_id": f"{device.device_id}_{name.lower()}",
         }
 
 
@@ -127,8 +216,7 @@ class Device(metaclass=DeviceMetaclass):
         self.hardware_version : str = args.get("hardware_version", "1.0")
         self.origin: str = args.get("origin", "Unknown")
         self.support_url: str = args.get("support_url", "https://example.com/support")
-        
-        
+                
 
     @property
     def discovery_topic(self) -> str:
@@ -141,20 +229,38 @@ class Device(metaclass=DeviceMetaclass):
         return f"{self.root_topic}/{self.device_id}/state"
 
     @property
-    def payload(self):
+    def payloads(self):
         """Publish the values to mqtt server."""
         components = self.__class__.__dict__.get("components", {})
-        payload =  {k: v.fget(self) for k, v in components.items()}
-        return payload   
+        payloads =  [(f"{self.root_topic}/{self.device_id}/{k}", v.fget(self)) for k, v in components.items()]
+        return payloads
 
     @property
-    def dict(self) -> dict:
+    def discovery_payload(self) -> dict:
         """Generate MQTT discovery configuration for Home Assistant."""
         dev = {"ids": f"{self.device_id}", "name": f"{self.device_name}", "mf": f"{self.manufacturer}", "mdl": f"{self.model}", "sw": f"{self.software_version}", "sn": self.serial_number, "hw": f"{self.hardware_version}"}
         o = {"name": f"{self.origin}", "sw": f"{self.software_version}", "url": f"{self.support_url}"}
-        cmps = [c.meta(n, self) for n, c in self.components.items()]
+        cmps = {f"{self.device_id}_{n}": c.meta(n, self) for n, c in self.components.items()}
         return {"dev": dev, "o": o, "cmps": cmps, "state_topic": f"{self.device_id}/state", "qos": 0 }
 
+    @property
+    def subscriptions(self) -> list[Tuple[str, int]]:
+        """Generate MQTT subscriptions for command topics."""
+        subs = []
+
+        def create_setter(prop):
+            def s(payload):
+                print("Setting property via MQTT:", payload)
+                prop.fset(self, prop.type(payload))
+            return s
+        
+        for name, prop in self.components.items():
+            if prop.is_read_only:
+                continue
+    
+            t = f"{self.root_topic}/{self.device_id}/{name.lower()}/set"
+            subs.append((t, create_setter(prop)))
+        return subs
 
 
 class TestDevice(Device):
@@ -164,8 +270,9 @@ class TestDevice(Device):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._name = "bar"
+        self._name = "foo"
         self._temperature = 25.0
+        self._speed = 0.0
 
     @property
     def name(self) -> str:
@@ -187,20 +294,41 @@ class TestDevice(Device):
         """Set the temperature value."""
         self._temperature = value
     
+    @number(min=0, max=10, step=1)
+    def speed(self) -> float:
+        """Return the speed value."""
+        return self._speed
+
+    @speed.setter
+    def speed(self, value: float):
+        """Set the speed value."""
+        self._speed = value
 
 
 if __name__ == "__main__":
+
     from dotenv import load_dotenv
     load_dotenv()
     td = TestDevice(root_topic="test_devices", 
                     device_id="test_device_1")
+    
+    print(type(TestDevice.speed))
+    print(type(TestDevice.temperature))
+    print(TestDevice.temperature.unit)
+
     print(f"Temperature: {td.temperature} °C")
     print("Discovery topic:")
     print(td.discovery_topic)
     print("Discovery Config:")
-    print(json.dumps(td.dict, indent=4))
+    print(json.dumps(td.discovery_payload, indent=4))
     print("Value Topic:")
     print(td.value_topic)
     print("Value Payload:")
-    print(json.dumps(td.payload, indent=4))
+    print(json.dumps(td.payloads, indent=4))
+    print("Subscriptions:")
+    for topic, setter in td.subscriptions:
+        print(f"Topic: {topic}, Setter: {setter}")
+        setter(3)
+
+    print(f"New Speed: {td.speed}")
 
