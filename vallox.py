@@ -521,17 +521,17 @@ class Vallox(Device):
 
         # Temperature variables
         if variable == vp.VX_VARIABLE_T_OUTSIDE:
-            self._check_status_change('t_outside', self._ntc_to_cel(value), now)
+            self._check_status_change('t_outside', self._ntc_to_cel(value))
         elif variable == vp.VX_VARIABLE_T_EXHAUST:
-            self._check_status_change('t_exhaust', self._ntc_to_cel(value), now)
+            self._check_status_change('t_exhaust', self._ntc_to_cel(value))
         elif variable == vp.VX_VARIABLE_T_INSIDE:
-            self._check_status_change('t_inside', self._ntc_to_cel(value), now)
+            self._check_status_change('t_inside', self._ntc_to_cel(value))
         elif variable == vp.VX_VARIABLE_T_INCOMING:
-            self._check_status_change('t_incoming', self._ntc_to_cel(value), now)
+            self._check_status_change('t_incoming', self._ntc_to_cel(value))
 
         # RH variables
         elif variable == vp.VX_VARIABLE_RH1:
-            self._check_status_change('rh1', self._hex_to_rh(value), now)
+            self._check_status_change('rh1', self._hex_to_rh(value))
         elif variable == vp.VX_VARIABLE_RH2:
             self._check_status_change('rh2', self._hex_to_rh(value), now)
 
@@ -825,22 +825,20 @@ class Vallox(Device):
                 self.on_property_changed(name, new_value)
                 self._call_status_changed(name)
 
-    def _check_value_change(self, name: str, new_value: Any, 
-                           timestamp: float):
+    def _check_value_change(self, name: str, new_value: Any):
         """Check and update value field if changed (for temperatures, CO2, RH)"""
         data_field: ValueWithTimestamp= self.data[name]
-        data_field.last_received = timestamp
+        data_field.last_received = time
         if data_field.value != new_value:
             data_field.value = new_value
-            self.data['updated'] = time.monotonic()
+            self.data['updated'] = time
             if self._is_temperature_init_done():
                 self._call_temperature_changed()
 
     def _handle_co2_total_value(self, hi: int, lo: int):
         """Construct CO2 value from high and low bytes"""
         total = lo + (hi << 8)
-        now = time.monotonic()
-        self._check_status_change('co2', total, now)
+        self._check_status_change('co2', total)
 
     def _is_temperature_init_done(self) -> bool:
         """Check if all temperatures have been received"""
