@@ -1,5 +1,6 @@
 """Device Manager for handling multiple devices."""
 import json
+from typing import Dict, List
 from device import Device
 
 class DeviceManager:
@@ -7,7 +8,7 @@ class DeviceManager:
     Manages multiple devices.
     """
     def __init__(self):
-        self.devices: dict[str, Device] = {}
+        self.devices: Dict[str, Device] = {}
         self.subscriptions = {}
         self.mqtt_client = None
 

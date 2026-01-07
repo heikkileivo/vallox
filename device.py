@@ -268,7 +268,7 @@ class Device(metaclass=DeviceMetaclass):
         return payloads
 
     @property
-    def subscriptions(self) -> list[Tuple[str, int]]:
+    def subscriptions(self) -> List[Tuple[str, int]]:
         """Generate MQTT subscriptions for command topics."""
         subs = []
 
