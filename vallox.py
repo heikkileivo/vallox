@@ -10,7 +10,7 @@ from typing import Optional, Callable, Any
 from dataclasses import dataclass
 from os import environ as env
 import serial
-from device import Device, temperature
+from device import Device, number, temperature
 from loopstate import LoopState
 import vallox_protocol as vp
 
@@ -314,7 +314,7 @@ class Vallox(Device):
         return self.full_init_done
 
     # Properties (read-write)
-    @property
+    @number(min_value=1, max_value=5, step=1)
     def fan_speed(self) -> int:
         """Get current fan speed (1-8)"""
         return self.data['fan_speed'].value if self.data['fan_speed'].value is not None else vp.NOT_SET
