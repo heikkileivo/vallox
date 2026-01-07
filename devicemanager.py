@@ -54,11 +54,11 @@ class DeviceManager:
         if setter:
             setter(msg.payload.decode())
 
-    def publish_all(self, mqtt_client):
+    def publish_all(self):
         """Publish all device payloads."""
         try:
             for device in self.devices.values():
                 for topic, payload in device.payloads:
-                    mqtt_client.publish(topic, json.dumps(payload), qos=0, retain=False)
+                    self.mqtt_client.publish(topic, json.dumps(payload), qos=0, retain=False)
         except Exception as e:
             print(f"Error publishing payloads: {e}")

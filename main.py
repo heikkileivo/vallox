@@ -20,11 +20,12 @@ async def run_tasks(state: LoopState):
        state.device_manager.mqtt_client = client
        state.device_manager.subscribe_all()
        state.device_manager.publish_discovery_topics()
-        
+       state.device_manager.publish_all()
+
     def on_disconnected(_client):
         state.mqtt_connected.clear()
         state.device_manager.mqtt_client = None
-    
+
     def on_message(msg):
         state.device_manager.handle_message(msg)
 
@@ -32,7 +33,7 @@ async def run_tasks(state: LoopState):
                                                   on_connected, 
                                                   on_disconnected,
                                                   on_message)))
-    
+
     tasks.append(asyncio.create_task(misc_task(state)))
 
     devices = create_devices()
@@ -44,7 +45,7 @@ async def run_tasks(state: LoopState):
 
 def main():
     """Entry point for running the application."""
-   
+
     load_dotenv()
     if sys.platform.startswith("win"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
