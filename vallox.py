@@ -521,19 +521,19 @@ class Vallox(Device):
 
         # Temperature variables
         if variable == vp.VX_VARIABLE_T_OUTSIDE:
-            self._check_value_change(self.data['t_outside'], self._ntc_to_cel(value), now)
+            self._check_status_change('t_outside', self._ntc_to_cel(value), now)
         elif variable == vp.VX_VARIABLE_T_EXHAUST:
-            self._check_value_change(self.data['t_exhaust'], self._ntc_to_cel(value), now)
+            self._check_status_change('t_exhaust', self._ntc_to_cel(value), now)
         elif variable == vp.VX_VARIABLE_T_INSIDE:
-            self._check_value_change(self.data['t_inside'], self._ntc_to_cel(value), now)
+            self._check_status_change('t_inside', self._ntc_to_cel(value), now)
         elif variable == vp.VX_VARIABLE_T_INCOMING:
-            self._check_value_change(self.data['t_incoming'], self._ntc_to_cel(value), now)
+            self._check_status_change('t_incoming', self._ntc_to_cel(value), now)
 
         # RH variables
         elif variable == vp.VX_VARIABLE_RH1:
-            self._check_value_change(self.data['rh1'], self._hex_to_rh(value), now)
+            self._check_status_change('rh1', self._hex_to_rh(value), now)
         elif variable == vp.VX_VARIABLE_RH2:
-            self._check_value_change(self.data['rh2'], self._hex_to_rh(value), now)
+            self._check_status_change('rh2', self._hex_to_rh(value), now)
 
         # CO2 variables
         elif variable == vp.VX_VARIABLE_CO2_HI:
@@ -552,11 +552,11 @@ class Vallox(Device):
         # Configuration variables
         elif variable == vp.VX_VARIABLE_FAN_SPEED:
             self.data['fan_speed'].last_received = now
-            self._check_status_change(self.data['fan_speed'], 
+            self._check_status_change('fan_speed', 
                                      self._hex_to_fan_speed(value))
         elif variable == vp.VX_VARIABLE_DEFAULT_FAN_SPEED:
             self.data['default_fan_speed'].last_received = now
-            self._check_status_change(self.data['default_fan_speed'], 
+            self._check_status_change('default_fan_speed', 
                                      self._hex_to_fan_speed(value))
         elif variable == vp.VX_VARIABLE_STATUS:
             self._decode_status(value)
@@ -566,13 +566,13 @@ class Vallox(Device):
             self._decode_flags06(value)
         elif variable == vp.VX_VARIABLE_SERVICE_PERIOD:
             self.data['service_period'].last_received = now
-            self._check_status_change(self.data['service_period'], value)
+            self._check_status_change('service_period', value)
         elif variable == vp.VX_VARIABLE_SERVICE_COUNTER:
             self.data['service_counter'].last_received = now
-            self._check_status_change(self.data['service_counter'], value)
+            self._check_status_change('service_counter', value)
         elif variable == vp.VX_VARIABLE_HEATING_TARGET:
             self.data['heating_target'].last_received = now
-            self._check_status_change(self.data['heating_target'], 
+            self._check_status_change('heating_target', 
                                      self._ntc_to_cel(value))
         elif variable == vp.VX_VARIABLE_PROGRAM:
             self._decode_program(value)
@@ -599,19 +599,19 @@ class Vallox(Device):
         self.data['status'].value = status
         self.data['status'].last_received = now
 
-        self._check_status_change(self.data['is_on'], 
+        self._check_status_change('is_on', 
                                  (status & vp.VX_STATUS_FLAG_POWER) != 0)
-        self._check_status_change(self.data['is_rh_mode'], 
+        self._check_status_change('is_rh_mode', 
                                  (status & vp.VX_STATUS_FLAG_RH) != 0)
-        self._check_status_change(self.data['is_heating_mode'], 
+        self._check_status_change('is_heating_mode', 
                                  (status & vp.VX_STATUS_FLAG_HEATING_MODE) != 0)
-        self._check_status_change(self.data['is_filter'], 
+        self._check_status_change('is_filter', 
                                  (status & vp.VX_STATUS_FLAG_FILTER) != 0)
-        self._check_status_change(self.data['is_heating'], 
+        self._check_status_change('is_heating', 
                                  (status & vp.VX_STATUS_FLAG_HEATING) != 0)
-        self._check_status_change(self.data['is_fault'], 
+        self._check_status_change('is_fault', 
                                  (status & vp.VX_STATUS_FLAG_FAULT) != 0)
-        self._check_status_change(self.data['is_service'], 
+        self._check_status_change('is_service', 
                                  (status & vp.VX_STATUS_FLAG_SERVICE) != 0)
 
         self.status_mutex = False
@@ -630,17 +630,17 @@ class Vallox(Device):
         self.data['variable08'].value = variable08
         self.data['variable08'].last_received = now
 
-        self._check_status_change(self.data['is_summer_mode'], 
+        self._check_status_change('is_summer_mode', 
                                  (variable08 & vp.VX_08_FLAG_SUMMER_MODE) != 0)
-        self._check_status_change(self.data['is_error'], 
+        self._check_status_change('is_error', 
                                  (variable08 & vp.VX_08_FLAG_ERROR_RELAY) != 0)
-        self._check_status_change(self.data['is_in_motor'], 
+        self._check_status_change('is_in_motor', 
                                  (variable08 & vp.VX_08_FLAG_MOTOR_IN) != 0)
-        self._check_status_change(self.data['is_front_heating'], 
+        self._check_status_change('is_front_heating', 
                                  (variable08 & vp.VX_08_FLAG_FRONT_HEATING) != 0)
-        self._check_status_change(self.data['is_out_motor'], 
+        self._check_status_change('is_out_motor', 
                                  (variable08 & vp.VX_08_FLAG_MOTOR_OUT) != 0)
-        self._check_status_change(self.data['is_extra_func'], 
+        self._check_status_change('is_extra_func', 
                                  (variable08 & vp.VX_08_FLAG_EXTRA_FUNC) != 0)
 
     def _decode_flags06(self, flags06: int):
@@ -651,7 +651,7 @@ class Vallox(Device):
         self.data['flags06'].value = flags06
         self.data['flags06'].last_received = now
 
-        self._check_status_change(self.data['is_switch_active'], 
+        self._check_status_change('is_switch_active', 
                                  (flags06 & vp.VX_06_FIREPLACE_FLAG_IS_ACTIVE) != 0)
 
     def _decode_program(self, program: int):
@@ -840,7 +840,7 @@ class Vallox(Device):
         """Construct CO2 value from high and low bytes"""
         total = lo + (hi << 8)
         now = time.monotonic()
-        self._check_value_change(self.data['co2'], total, now)
+        self._check_status_change('co2', total, now)
 
     def _is_temperature_init_done(self) -> bool:
         """Check if all temperatures have been received"""
@@ -910,10 +910,15 @@ class Vallox(Device):
 async def poll_device(state: LoopState, device: Vallox):
     """Poll data from the vallox device."""
     print("Starting polling task...")
+
+    if device.connect():
+        print("Connected to Vallox device.")
+
     while not state.stop.is_set():
-        # Placeholder for polling logic
+        print("Polling device for changes...")
         device.loop()
-        await asyncio.sleep(1)  
+        print(f"Outside temp: {device.outside_temp}")
+        await asyncio.sleep(0.1)
     print("Polling task stopped.")
 
 def create_devices():
@@ -922,4 +927,8 @@ def create_devices():
     debug = env.get("VALLOX_DEBUG", "false").lower() == "true"
     return [(Vallox(root_topic="ventilation",
                     port=port,
+                    baudrate=9600,
                     debug=debug), poll_device)]
+
+
+
