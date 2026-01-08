@@ -13,11 +13,11 @@ def create_mqtt_client(state: LoopState, on_connected, on_disconnected, on_messa
     def handle_write():
         state.mqtt_client.loop_write()
 
-    def on_socket_open(client, userdata, sock):
+    def on_socket_open(_client, _userdata, sock):
         state.socket = sock
         state.event_loop.add_reader(sock.fileno(), handle_read)
 
-    def on_socket_close(client, userdata, sock):
+    def on_socket_close(_client, _userdata, _sock):
         if state.socket:
             try:
                 state.event_loop.remove_reader(state.socket.fileno())
