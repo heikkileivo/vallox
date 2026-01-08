@@ -53,6 +53,8 @@ class DeviceProperty(property):
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
         super().__init__(fget, fset, fdel, doc)
         self._name: str = ""
+        self.parent = None
+        self.display_name: Optional[str] = None
 
     @property
     def is_read_only(self) -> bool:
@@ -61,17 +63,24 @@ class DeviceProperty(property):
 
     def __set_name__(self, owner, name: str) -> None:
         # Called when the descriptor is assigned to a class attribute
-        self._name = name
+        instance = self
+        while True:
+            instance._name = name
+            instance = instance.parent
+            if instance is None: 
+                break
 
-    def meta(self, _name: str, _device: "Device") -> dict:
+    def meta(self, _device: "Device") -> dict:
         """Return metadata for temperature property."""
         return {}
 
     def _copy_metadata_to(self, other: "DeviceProperty") -> "DeviceProperty":
+        other.display_name = self.display_name
         return other
 
     def _replace(self, fget=None, fset=None, fdel=None, doc=None):
         new = type(self)(fget, fset, fdel, doc)
+        new.parent = self
         return self._copy_metadata_to(new)
 
     def getter(self, fget):
@@ -103,6 +112,7 @@ class Number(DeviceProperty):
         self.step: Optional[float] = None
 
     def _copy_metadata_to(self, other: "Number") -> "Number":
+        super()._copy_metadata_to(other)
         other.type = self.type
         other.unit = self.unit
         other.min = self.min
@@ -110,21 +120,19 @@ class Number(DeviceProperty):
         other.step = self.step
         return other
 
-    def meta(self, name: str, device) -> dict:
+    def meta(self, device) -> dict:
         """
         Return metadata for number entity.
         """
         meta = {
-            "name": name,
+            "name": self.display_name or self._name,
             "p": "number",
             "unit_of_measurement": self.unit,
-            "state_topic": f"{device.root_topic}/{device.device_id}/{name.lower()}",
-            "unique_id": f"{device.device_id}_{name.lower()}",
+            "state_topic": f"{device.root_topic}/{device.device_id}/{self._name.lower()}",
+            "unique_id": f"{device.device_id}_{self._name.lower()}",
         }
         if self.is_read_only is False:
-            meta["command_topic"] = f"{device.root_topic}/{device.device_id}/{name.lower()}/set"
-        print(f"Min in meta: {self.min}")
-        print(f"Max in meta: {self.max}")
+            meta["command_topic"] = f"{device.root_topic}/{device.device_id}/{self._name.lower()}/set"
         if self.min is not None:
             meta["min"] = self.min
         if self.max is not None:
@@ -134,6 +142,7 @@ class Number(DeviceProperty):
         return meta
 
 def number(value_type: type = int,
+           display_name: str = "",
            unit: str = "",
            min_value: Optional[float] = None, 
            max_value: Optional[float] = None, 
@@ -143,14 +152,12 @@ def number(value_type: type = int,
     """
     def decorator(func):
         prop = Number(func)
+        prop.display_name = display_name
         prop.type = value_type
         prop.unit = unit
         prop.min = min_value
         prop.max = max_value
         prop.step = step
-
-        print(f"Min set to: {prop.min}")
-        print(f"Max set to: {prop.max}")
         return prop
     return decorator
 
@@ -164,30 +171,32 @@ class Temperature(DeviceProperty):
         self.unit: str = "°C"
 
     def _copy_metadata_to(self, other):
+        super()._copy_metadata_to(other)
         other.type = self.type
         other.unit = self.unit
         return other
 
-    def meta(self, name: str, device) -> dict:
+    def meta(self, device) -> dict:
         """
         Return metadata for temperature entity.
         """
         return {
-            "name": name,
+            "name": self.display_name or self._name,
             "p": "sensor",
             "unit_of_measurement": self.unit,
             "device_class": "temperature",
-            "state_topic": f"{device.root_topic}/{device.device_id}/{name.lower()}",
-            "unique_id": f"{device.device_id}_{name.lower()}",
+            "state_topic": f"{device.root_topic}/{device.device_id}/{self._name.lower()}",
+            "unique_id": f"{device.device_id}_{self._name.lower()}",
         }
 
-def temperature(unit: str = "°C"):
+def temperature(unit: str = "°C", display_name: Optional[str] = None):
     """
     Decorator to define a temperature property.
     """
     def decorator(func):
         prop = Temperature(func)
         prop.unit = unit
+        prop.display_name = display_name
         return prop
     return decorator
 
@@ -248,7 +257,7 @@ class Device(metaclass=DeviceMetaclass):
              "sw": f"{self.software_version}", 
              "url": f"{self.support_url}"}
 
-        cmps = {f"{self.device_id}_{n}": c.meta(n, self) for n, c in self.components.items()}
+        cmps = {f"{self.device_id}_{n}": c.meta(self) for n, c in self.components.items()}
         return {"dev": dev, 
                 "o": o, 
                 "cmps": cmps, 
