@@ -3,24 +3,26 @@
 import asyncio
 import signal
 import sys
+import os
 import importlib
+from typing import Callable, List, Tuple
 from dotenv import load_dotenv
-from core import DeviceManager
+from core import DeviceManager, Device
 from core import LoopState
 from core import misc_task, mqtt_supervisor
 
-create_devices: callable = None
+create_devices: List[Callable[[], List[Tuple[Device, Callable]]]] = []
 
 async def run_tasks(state: LoopState):
     """Create asyncio tasks for the main loop."""
     tasks = []
 
     def on_connected(client):
-       state.mqtt_connected.set()
-       state.device_manager.mqtt_client = client
-       state.device_manager.subscribe_all()
-       state.device_manager.publish_discovery_topics()
-       state.device_manager.publish_all()
+        state.mqtt_connected.set()
+        state.device_manager.mqtt_client = client
+        state.device_manager.subscribe_all()
+        state.device_manager.publish_discovery_topics()
+        state.device_manager.publish_all()
 
     def on_disconnected(_client):
         state.mqtt_connected.clear()
@@ -36,10 +38,11 @@ async def run_tasks(state: LoopState):
 
     tasks.append(asyncio.create_task(misc_task(state)))
 
-    devices = create_devices()
-    for device, task in devices:  
-        state.device_manager.add_device(device)
-        tasks.append(asyncio.create_task(task(state, device)))
+    for create_devices_func in create_devices:
+        devices = create_devices_func()
+        for device, task in devices:  
+            state.device_manager.add_device(device)
+            tasks.append(asyncio.create_task(task(state, device)))
 
     await asyncio.gather(*tasks)
 
@@ -77,21 +80,30 @@ def main():
         loop.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <module_name>")
+    module_names_env = os.getenv("DEVICE_MODULES")
+    if not module_names_env:
+        print("Error: DEVICE_MODULES environment variable is not set.")
+        print("Set it to one or more module names separated by spaces.")
+        print("Example: DEVICE_MODULES='module1 module2'")
         sys.exit(1)
 
-    module_name = sys.argv[1]
-    try:
-        device_module = importlib.import_module(module_name)
-    except ImportError as e:
-        print(f"Error importing module '{module_name}': {e}")
-        exit(1)
+    module_names = module_names_env.split()
+    
+    for module_name in module_names:
+        try:
+            device_module = importlib.import_module(module_name)
+        except ImportError as e:
+            print(f"Error importing module '{module_name}': {e}")
+            exit(1)
 
-    if hasattr(device_module, "create_devices"):
-        create_devices = device_module.create_devices
-    else:
-        print(f"Module '{module_name}' does not have 'create_devices' function.")
+        if hasattr(device_module, "create_devices"):
+            create_devices.append(device_module.create_devices)
+            print(f"Loaded module: {module_name}")
+        else:
+            print(f"Warning: Module '{module_name}' does not have 'create_devices' function.")
+
+    if not create_devices:
+        print("Error: No valid modules with 'create_devices' function found.")
         exit(1)
 
     main()
