@@ -4,6 +4,7 @@ import asyncio
 import signal
 import sys
 import os
+from os import environ as env
 import importlib
 from typing import Callable, List, Tuple
 from dotenv import load_dotenv
@@ -80,7 +81,7 @@ def main():
         loop.close()
 
 if __name__ == "__main__":
-    module_names_env = os.getenv("DEVICE_MODULES")
+    module_names_env = env.get("DEVICE_MODULES", None)
     if not module_names_env:
         print("Error: DEVICE_MODULES environment variable is not set.")
         print("Set it to one or more module names separated by spaces.")
