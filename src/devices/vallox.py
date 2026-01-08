@@ -190,22 +190,22 @@ class Vallox(Device):
         """Get timestamp of last update"""
         return self.data['updated']
 
-    @temperature(unit="°C")
+    @temperature(unit="°C", display_name="Inside Temperature")
     def inside_temp(self) -> int:
         """Get inside temperature in Celsius"""
         return self.data['inside_temp'].value if self.data['inside_temp'].value is not None else 0
 
-    @temperature(unit="°C")
+    @temperature(unit="°C", display_name="Outside Temperature")
     def outside_temp(self) -> int:
         """Get outside temperature in Celsius"""
         return self.data['outside_temp'].value if self.data['outside_temp'].value is not None else 0
 
-    @temperature(unit="°C")
+    @temperature(unit="°C", display_name="Incoming Temperature")
     def incoming_temp(self) -> int:
         """Get incoming air temperature in Celsius"""
         return self.data['incoming_temp'].value if self.data['incoming_temp'].value is not None else 0
 
-    @temperature(unit="°C")
+    @temperature(unit="°C",display_name="Exhaust Temperature")
     def exhaust_temp(self) -> int:
         """Get exhaust air temperature in Celsius"""
         return self.data['exhaust_temp'].value if self.data['exhaust_temp'].value is not None else 0
@@ -314,7 +314,7 @@ class Vallox(Device):
         return self.full_init_done
 
     # Properties (read-write)
-    @number(min_value=1, max_value=5, step=1)
+    @number(min_value=1, max_value=5, step=1, display_name="Fan Speed")
     def fan_speed(self) -> int:
         """Get current fan speed (1-8)"""
         return self.data['fan_speed'].value if self.data['fan_speed'].value is not None else vp.NOT_SET

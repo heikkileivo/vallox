@@ -25,7 +25,7 @@ class TestDevice(Device):
         """Set the name of the device."""
         self._name = value
 
-    @temperature(unit="°C")
+    @temperature(unit="°C", display_name="Temperature")
     def temperature(self) -> float:
         """Return the temperature value."""
         return self._temperature
@@ -35,7 +35,7 @@ class TestDevice(Device):
         """Set the temperature value."""
         self._temperature = value
 
-    @number(min_value=0, max_value=10, step=1)
+    @number(min_value=0, max_value=10, step=1, display_name="Speed")
     def speed(self) -> float:
         """Return the speed value."""
         return self._speed
