@@ -49,8 +49,6 @@ async def run_tasks(state: LoopState):
 
 def main():
     """Entry point for running the application."""
-
-    load_dotenv()
     if sys.platform.startswith("win"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -81,6 +79,7 @@ def main():
         loop.close()
 
 if __name__ == "__main__":
+    load_dotenv()
     module_names_env = env.get("DEVICE_MODULES", None)
     if not module_names_env:
         print("Error: DEVICE_MODULES environment variable is not set.")
