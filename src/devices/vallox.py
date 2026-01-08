@@ -10,9 +10,9 @@ from typing import Optional, Callable, Any
 from dataclasses import dataclass
 from os import environ as env
 import serial
-from device import Device, number, temperature
-from loopstate import LoopState
-import vallox_protocol as vp
+from core import Device, number, temperature
+from core import LoopState
+from . import vallox_protocol as vp
 
 
 @dataclass

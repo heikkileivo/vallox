@@ -5,9 +5,9 @@ import signal
 import sys
 import importlib
 from dotenv import load_dotenv
-from devicemanager import DeviceManager
-from loopstate import LoopState
-from mqtt import misc_task, mqtt_supervisor
+from core import DeviceManager
+from core import LoopState
+from core import misc_task, mqtt_supervisor
 
 create_devices: callable = None
 

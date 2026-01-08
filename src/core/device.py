@@ -1,7 +1,7 @@
 """
 MQTT discovery for Home Assistant integration.
 """
-from typing import List, Tuple, Optional
+from typing import ClassVar, Dict, List, Tuple, Optional
 import os
 from os import environ as env
 
@@ -12,7 +12,7 @@ class DeviceId:
     """
     _index : int = 0
     _is_initialized : bool = False
-    _ids : List[str] = []
+    _ids : ClassVar[List[str]] = []
 
     """ Class initializer to load existing IDs from file. """
     @classmethod
@@ -197,21 +197,22 @@ class DeviceMetaclass(type):
     """
 
     def __new__(mcs, name, bases, attrs):
-        if "components" not in attrs:
-            attrs["components"] = {}
+        components = {}
+        for b in bases:
+            components.update(getattr(b, "components", {}))
 
-        # Copy all DeviceProperty attributes to components
         for key, value in attrs.items():
             if isinstance(value, DeviceProperty):
-                attrs["components"][key] = value
+                components[key] = value
 
+        attrs["components"] = components
         return super().__new__(mcs, name, bases, attrs)
 
 class Device(metaclass=DeviceMetaclass):
     """
     Base class for Home Assistant MQTT discovery devices.
     """
-    components = {}
+    components:  ClassVar[Dict[str, DeviceProperty]]
     def __init__(self, **kwargs):
         args = {**kwargs, **env}
         self.root_topic : str = args.get("root_topic", self.__class__.__name__.lower())

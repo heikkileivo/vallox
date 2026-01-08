@@ -1,7 +1,7 @@
 """Device Manager for handling multiple devices."""
 import json
-from typing import Dict, List
-from device import Device
+from typing import Dict
+from .device import Device
 
 class DeviceManager:
     """

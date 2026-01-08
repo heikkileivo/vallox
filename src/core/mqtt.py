@@ -3,7 +3,7 @@ import asyncio
 import uuid
 from os import environ as env
 import paho.mqtt.client as mqtt
-from loopstate import LoopState
+from .loopstate import LoopState
 
 def create_mqtt_client(state: LoopState, on_connected, on_disconnected, on_message_received):
     """Connect to the MQTT broker."""

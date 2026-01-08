@@ -1,8 +1,8 @@
 """Example test device implementation."""
 
 import asyncio
-from device import Device, number, temperature
-from loopstate import LoopState
+from core import Device, number, temperature
+from core import LoopState
 
 class TestDevice(Device):
     """
