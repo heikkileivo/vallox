@@ -2,7 +2,9 @@
 Vallox Digit SE Communication Library for Python
 
 This module provides serial communication with Vallox air conditioning units.
-Based on the original Arduino implementation by Toni Korhonen.
+Based on the original Arduino implementation by Toni Korhonen (@kotope).
+
+See: https://github.com/kotope/valloxesp
 """
 import asyncio
 import time
