@@ -7,6 +7,7 @@ from logging import debug
 import serial
 from core import Device
 from core.loopstate import LoopState
+from core.sensors import temperature
 
 
 class MeasurePoint:
@@ -272,27 +273,27 @@ class OumanEH203(Ouman):
         
         self.__measurepoints = {mp.name: mp for mp in points}
 
-    @property
+    @temperature(unit="°C", display_name="Outdoor Temperature")
     def outdoor_temperature(self):
         """Return the outdoor temperature measure point value."""
         return self.__measurepoints['outdoor_temperature'].value
     
-    @property
+    @temperature(unit="°C", display_name="H1 Supply Temperature")
     def h1_supply_temperature(self):
         """Return the H1 supply temperature measure point value."""
         return self.__measurepoints['h1_supply_temperature'].value
 
-    @property
+    @temperature(unit="°C", display_name="H1 Room Temperature")
     def h1_room_temperature(self):
         """Return the H1 room temperature measure point value."""
         return self.__measurepoints['h1_room_temperature'].value
     
-    @property
+    @temperature(unit="°C", display_name="H1 Return Temperature")
     def h1_return_temperature(self):
         """Return the H1 return temperature measure point value."""
         return self.__measurepoints['h1_return_temperature'].value
-
-    @property
+    
+    @temperature(unit="°C", display_name="H2 Supply Temperature")
     def h2_supply_temperature(self):
         """Return the H2 supply temperature measure point value."""
         return self.__measurepoints['h2_supply_temperature'].value
