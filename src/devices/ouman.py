@@ -143,13 +143,11 @@ class Ouman(Device):
     
     def read_all(self):
         """Read all measure points from the Ouman device."""
-        print(f"Reading {len(self.__measurepoints)} measure points...")
         for mp in self.__measurepoints.values():
             mp.read()
 
     def read(self, measurepoint):
         """Read a measure point from the Ouman device."""
-        print(f"Reading measure point: {measurepoint.name}")
         return self.__read(measurepoint.idx, measurepoint.datastart, measurepoint.dataend)
 
     def __read(self, cmd, s, e):
@@ -226,7 +224,6 @@ class Ouman(Device):
             return
         
         while not state.stop.is_set():
-            print("Polling Ouman device...")
             try:
                 self.read_all()
             except Exception as e:
