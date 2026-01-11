@@ -27,7 +27,6 @@ class MeasurePoint:
     def read(self):
         """Read the value of this measure point from the Ouman device."""
         self._raw_value = self.__ouman.read(self)
-        print(f"Measure point {self.name} raw value: {self._raw_value}")
         new_value = self.parse(self._raw_value)
         if new_value != self._value:
             self._value = new_value
