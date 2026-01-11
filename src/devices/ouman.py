@@ -230,6 +230,10 @@ class Ouman(Device):
             await asyncio.sleep(1)  
         print("Polling Ouman stopped.")
 
+    def get_measurepoint(self, name):
+        """Get a measure point by name."""
+        return self.__measurepoints.get(name)   
+
 class OumanEH203(Ouman):
     """Ouman EH-203 device implementation."""
     def __init__(self, *args, **kwargs):
@@ -279,135 +283,135 @@ class OumanEH203(Ouman):
     @temperature(unit="°C", display_name="Outdoor Temperature")
     def outdoor_temperature(self):
         """Return the outdoor temperature measure point value."""
-        return self.__measurepoints['outdoor_temperature'].value
+        return self.get_measurepoint('outdoor_temperature').value
     
     @temperature(unit="°C", display_name="H1 Supply Temperature")
     def h1_supply_temperature(self):
         """Return the H1 supply temperature measure point value."""
-        return self.__measurepoints['h1_supply_temperature'].value
+        return self.get_measurepoint('h1_supply_temperature').value
 
     @temperature(unit="°C", display_name="H1 Room Temperature")
     def h1_room_temperature(self):
         """Return the H1 room temperature measure point value."""
-        return self.__measurepoints['h1_room_temperature'].value
+        return self.get_measurepoint('h1_room_temperature').value
     
     @temperature(unit="°C", display_name="H1 Return Temperature")
     def h1_return_temperature(self):
         """Return the H1 return temperature measure point value."""
-        return self.__measurepoints['h1_return_temperature'].value
+        return self.get_measurepoint('h1_return_temperature').value
     
     @temperature(unit="°C", display_name="H2 Supply Temperature")
     def h2_supply_temperature(self):
         """Return the H2 supply temperature measure point value."""
-        return self.__measurepoints['h2_supply_temperature'].value
+        return self.get_measurepoint('h2_supply_temperature').value
 
     @numeric(display_name="Measurement 6")
     def measurement_6(self):
         """Return the measurement 6 measure point value."""
-        return self.__measurepoints['measurement_6'].value
+        return self.get_measurepoint('measurement_6').value
     
     @temperature(unit="°C", display_name="HW Supply Temperature")
     def hw_supply_temperature(self):
         """Return the HW supply temperature measure point value."""
-        return self.__measurepoints['hw_supply_temperature'].value
+        return self.get_measurepoint('hw_supply_temperature').value
     
     @temperature(unit="°C", display_name="HW Circulation Temperature")
     def hw_circulation_temperature(self):
         """Return the HW circulation temperature measure point value."""
-        return self.__measurepoints['hw_circulation_temperature'].value
+        return self.get_measurepoint('hw_circulation_temperature').value
     
     @numeric(display_name="Measurement 9")
     def measurement_9(self):
         """Return the measurement 9 measure point value."""
-        return self.__measurepoints['measurement_9'].value
+        return self.get_measurepoint('measurement_9').value
     
     @numeric(display_name="Measurement 10")
     def measurement_10(self):
         """Return the measurement 10 measure point value."""
-        return self.__measurepoints['measurement_10'].value
+        return self.get_measurepoint('measurement_10').value
     
     @numeric(display_name="Measurement 11")
     def measurement_11(self):
         """Return the measurement 11 measure point value."""
-        return self.__measurepoints['measurement_11'].value    
+        return self.get_measurepoint('measurement_11').value    
 
     @binary(display_name="Digital Input 1")
     def digital_input1(self):
         """Return the state of digital input 1."""
-        return self.__measurepoints['digital_input1'].value
+        return self.get_measurepoint('digital_input1').value
     
     @binary(display_name="Digital Input 2")
     def digital_input2(self):
         """Return the state of digital input 2."""
-        return self.__measurepoints['digital_input2'].value
+        return self.get_measurepoint('digital_input2').value
     
     @binary(display_name="Digital Input 3")
     def digital_input3(self):
         """Return the state of digital input 3."""
-        return self.__measurepoints['digital_input3'].value
+        return self.get_measurepoint('digital_input3').value
     
     @binary(display_name="Relay 1")
     def relay1(self):
         """Return the state of relay 1."""
-        return self.__measurepoints['relay1'].value
+        return self.get_measurepoint('relay1').value
     
     @binary(display_name="Relay 2")
     def relay2(self):
         """Return the state of relay 2."""
-        return self.__measurepoints['relay2'].value
+        return self.get_measurepoint('relay2').value
     
     @numeric(unit="%", display_name="H1 Valve Position")
     def valve1_position(self):
         """Return the H1 valve position measure point value."""
-        return self.__measurepoints['h1_valve_position'].value
+        return self.get_measurepoint('h1_valve_position').value
     
     @numeric(unit="%", display_name="H2 Valve Position")
     def valve2_position(self):
         """Return the H2 valve position measure point value."""
-        return self.__measurepoints['h2_valve_position'].value
+        return self.get_measurepoint('h2_valve_position').value
     
     @numeric(unit="%", display_name="HW Valve Position")
     def hw_valve_position(self):
         """Return the HW valve position measure point value."""
-        return self.__measurepoints['hw_valve_position'].value
+        return self.get_measurepoint('hw_valve_position').value
 
 
     @temperature(unit="°C", display_name="H1 Room Setpoint")
     def h1_room_setpoint(self):
         """Return the H1 room setpoint measure point value."""
-        return self.__measurepoints['h1_room_setpoint'].value
+        return self.get_measurepoint['h1_room_setpoint'].value
     
 
     @temperature(unit="°C", display_name="H2 Room Setpoint")
     def h2_room_setpoint(self):
         """Return the H2 room setpoint measure point value."""
-        return self.__measurepoints['h2_room_setpoint'].value
+        return self.get_measurepoint('h2_room_setpoint').value
     
 
     @temperature(unit="°C", display_name="HW Supply Setpoint")
     def hw_supply_setpoint(self):
         """Return the HW supply setpoint measure point value."""
-        return self.__measurepoints['hw_supply_setpoint'].value
+        return self.get_measurepoint('hw_supply_setpoint').value
 
     @numeric(unit="kW", display_name="Peak Power")
     def peak_power(self):
         """Return the peak power measure point value."""
-        return self.__measurepoints['peak_power'].value 
+        return self.get_measurepoint('peak_power').value 
     
     @numeric(unit="m3", display_name="Peak Flow")
     def peak_flow(self):
         """Return the peak flow measure point value."""
-        return self.__measurepoints['peak_flow'].value
+        return self.get_measurepoint('peak_flow').value
 
     @numeric(unit="kWh", display_name="HW Energy")
     def hw_energy(self):
         """Return the HW energy measure point value."""
-        return self.__measurepoints['hw_energy'].value
+        return self.get_measurepoint('hw_energy').value
     
     @numeric(unit="m3", display_name="HW Water")
     def hw_water(self):
         """Return the HW water measure point value."""
-        return self.__measurepoints['hw_water'].value
+        return self.get_measurepoint('hw_water').value
 
 def create_devices():
     """Create and return a list of Ouman devices."""
