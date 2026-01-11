@@ -301,7 +301,7 @@ class OumanEH203(Ouman):
         """Return the H2 supply temperature measure point value."""
         return self.__measurepoints['h2_supply_temperature'].value
 
-    @property
+    @numeric(display_name="Measurement 6")
     def measurement_6(self):
         """Return the measurement 6 measure point value."""
         return self.__measurepoints['measurement_6'].value
@@ -316,43 +316,42 @@ class OumanEH203(Ouman):
         """Return the HW circulation temperature measure point value."""
         return self.__measurepoints['hw_circulation_temperature'].value
     
-    @property
+    @numeric(display_name="Measurement 9")
     def measurement_9(self):
         """Return the measurement 9 measure point value."""
         return self.__measurepoints['measurement_9'].value
     
-    @property
+    @numeric(display_name="Measurement 10")
     def measurement_10(self):
         """Return the measurement 10 measure point value."""
         return self.__measurepoints['measurement_10'].value
     
-    @property
+    @numeric(display_name="Measurement 11")
     def measurement_11(self):
         """Return the measurement 11 measure point value."""
-        return self.__measurepoints['measurement_11'].value
-    
+        return self.__measurepoints['measurement_11'].value    
 
-    @property
+    @binary(display_name="Digital Input 1")
     def digital_input1(self):
         """Return the state of digital input 1."""
         return self.__measurepoints['digital_input1'].value
     
-    @property
+    @binary(display_name="Digital Input 2")
     def digital_input2(self):
         """Return the state of digital input 2."""
         return self.__measurepoints['digital_input2'].value
     
-    @property
+    @binary(display_name="Digital Input 3")
     def digital_input3(self):
         """Return the state of digital input 3."""
         return self.__measurepoints['digital_input3'].value
     
-    @property
+    @binary(display_name="Relay 1")
     def relay1(self):
         """Return the state of relay 1."""
         return self.__measurepoints['relay1'].value
     
-    @property
+    @binary(display_name="Relay 2")
     def relay2(self):
         """Return the state of relay 2."""
         return self.__measurepoints['relay2'].value
@@ -373,41 +372,39 @@ class OumanEH203(Ouman):
         return self.__measurepoints['hw_valve_position'].value
 
 
-    @property
+    @temperature(unit="°C", display_name="H1 Room Setpoint")
     def h1_room_setpoint(self):
         """Return the H1 room setpoint measure point value."""
         return self.__measurepoints['h1_room_setpoint'].value
     
 
-    @property
+    @temperature(unit="°C", display_name="H2 Room Setpoint")
     def h2_room_setpoint(self):
         """Return the H2 room setpoint measure point value."""
         return self.__measurepoints['h2_room_setpoint'].value
     
 
-    @property
+    @temperature(unit="°C", display_name="HW Supply Setpoint")
     def hw_supply_setpoint(self):
         """Return the HW supply setpoint measure point value."""
         return self.__measurepoints['hw_supply_setpoint'].value
 
-
-
-    @property
+    @numeric(unit="kW", display_name="Peak Power")
     def peak_power(self):
         """Return the peak power measure point value."""
         return self.__measurepoints['peak_power'].value 
     
-    @property
+    @numeric(unit="m3", display_name="Peak Flow")
     def peak_flow(self):
         """Return the peak flow measure point value."""
         return self.__measurepoints['peak_flow'].value
 
-    @property
+    @numeric(unit="kWh", display_name="HW Energy")
     def hw_energy(self):
         """Return the HW energy measure point value."""
         return self.__measurepoints['hw_energy'].value
     
-    @property
+    @numeric(unit="m3", display_name="HW Water")
     def hw_water(self):
         """Return the HW water measure point value."""
         return self.__measurepoints['hw_water'].value
