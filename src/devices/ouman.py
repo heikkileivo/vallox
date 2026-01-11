@@ -30,7 +30,7 @@ class MeasurePoint:
         new_value = self.parse(self._raw_value)
         if new_value != self._value:
             self._value = new_value
-            self.__ouman.on_value_changed(self)
+            self.__ouman.on_property_changed(self.name, self._value)
 
     @property
     def raw_value(self):
