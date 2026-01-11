@@ -126,10 +126,10 @@ class Ouman(Device):
     STX = b'\x02'
     ACK = b'\x06'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, points,  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__serio = None
-        self.__measurepoints = {}
+        self.__measurepoints = {mp.name: mp for mp in points}
 
     def connect(self, dev, baudrate=4800, timeout=1):
         """Connect to the Ouman device via serial port."""
@@ -237,7 +237,6 @@ class Ouman(Device):
 class OumanEH203(Ouman):
     """Ouman EH-203 device implementation."""
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         points = []
         # Define measure points for Ouman EH-203 based on EH-203.xml
         # Analog measurements
@@ -278,7 +277,8 @@ class OumanEH203(Ouman):
         points.append(NumericMeasurePoint(63, 0, "hw_energy", 0, 3, "kWh", 1, self))
         points.append(NumericMeasurePoint(64, 0, "hw_water", 0, 3, "m3", 100, self))
         
-        self.__measurepoints = {mp.name: mp for mp in points}
+        super().__init__(points, *args, **kwargs)
+
 
     @temperature(unit="°C", display_name="Outdoor Temperature")
     def outdoor_temperature(self):
