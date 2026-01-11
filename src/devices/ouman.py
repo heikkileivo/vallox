@@ -333,7 +333,7 @@ class OumanEH203(Ouman):
     @numeric(display_name="Measurement 11")
     def measurement_11(self):
         """Return the measurement 11 measure point value."""
-        return self.get_measurepoint('measurement_11').value    
+        return self.get_measurepoint('measurement_11').value
 
     @binary(display_name="Digital Input 1")
     def digital_input1(self):
@@ -361,12 +361,12 @@ class OumanEH203(Ouman):
         return self.get_measurepoint('relay2').value
     
     @numeric(unit="%", display_name="H1 Valve Position")
-    def valve1_position(self):
+    def h1_valve_position(self):
         """Return the H1 valve position measure point value."""
         return self.get_measurepoint('h1_valve_position').value
     
     @numeric(unit="%", display_name="H2 Valve Position")
-    def valve2_position(self):
+    def h2_valve_position(self):
         """Return the H2 valve position measure point value."""
         return self.get_measurepoint('h2_valve_position').value
     
@@ -379,14 +379,13 @@ class OumanEH203(Ouman):
     @temperature(unit="°C", display_name="H1 Room Setpoint")
     def h1_room_setpoint(self):
         """Return the H1 room setpoint measure point value."""
-        return self.get_measurepoint['h1_room_setpoint'].value
+        return self.get_measurepoint('h1_room_setpoint').value
     
 
     @temperature(unit="°C", display_name="H2 Room Setpoint")
     def h2_room_setpoint(self):
         """Return the H2 room setpoint measure point value."""
-        return self.get_measurepoint('h2_room_setpoint').value
-    
+        return self.get_measurepoint('h2_room_setpoint').value    
 
     @temperature(unit="°C", display_name="HW Supply Setpoint")
     def hw_supply_setpoint(self):
