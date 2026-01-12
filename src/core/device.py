@@ -213,7 +213,7 @@ class Device(metaclass=DeviceMetaclass):
         return subs
 
     def on_property_changed(self, name, value):
-        """Callback when a property value changes."""¨
+        """Callback when a property value changes."""
         if value is None:
             return
         print(f"Property changed: {name}, New Value: {value}")
