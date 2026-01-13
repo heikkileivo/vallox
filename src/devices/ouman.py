@@ -2,7 +2,7 @@
 Ouman EH-203 Library for Python
 
 This module provides serial communication with Ouman EH-203 devices.
-Based on the original python by Antti Laine (@aalien).
+Based on the original python implementation by Antti Laine (@aalien).
 
 See: https://github.com/aalien/ouman/
 """
